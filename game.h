@@ -1,31 +1,27 @@
-// Game.h
-// Main game class for GV-themed Zork game
-
 #ifndef GAME_H
 #define GAME_H
 
-#include <map>
-#include <vector>
-#include <string>
-#include "location.h"
-#include "Item.h"
-#include "NPC.h"
+#include <map>       // For std::map
+#include <vector>    // For std::vector
+#include <string>    // For std::string
+#include "Location.h"
+
+// Forward declarations for classes used but not defined here
+class Location;
+class Item;
+class NPC;
 
 class Game {
-private:
-    std::map<std::string, void(*)(std::vector<std::string>)> commands;
-    std::vector<Item> inventory;
-    int currentWeight;
-    std::vector<Location> world;
-    Location* currentLocation;
-    int elfCaloriesNeeded;
-    bool inProgress;
+public:
+    Game();
+    void play();
+    
+    // Sets up the commands map
+    std::map<std::string, void(Game::*)(std::vector<std::string>)> setupCommands();
 
     void createWorld();
-    std::map<std::string, void(*)(std::vector<std::string>)> setupCommands();
     Location* randomLocation();
 
-    // Game commands
     void showHelp(std::vector<std::string> args);
     void talk(std::vector<std::string> args);
     void meet(std::vector<std::string> args);
@@ -36,9 +32,17 @@ private:
     void look(std::vector<std::string> args);
     void quit(std::vector<std::string> args);
 
-public:
-    Game();
-    void play();
+    // Custom commands
+    void teleport(std::vector<std::string> args);
+    void magic(std::vector<std::string> args);
+
+private:
+    Location* currentLocation;
+    std::vector<Location> world;
+    std::map<std::string, void(Game::*)(std::vector<std::string>)> commands;
+    int currentWeight;
+    int elfCaloriesNeeded;
+    bool inProgress;
 };
 
 #endif // GAME_H

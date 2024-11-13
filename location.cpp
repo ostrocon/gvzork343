@@ -1,7 +1,7 @@
 // Location.cpp
 // Implementation of the Location class for the GV-themed Zork game
 
-#include "Location.h"
+#include "location.h"
 #include <stdexcept>
 #include <sstream>
 

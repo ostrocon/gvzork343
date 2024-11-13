@@ -1,6 +1,7 @@
-#include "Game.h"
-#include "Location.h"
-
+#include "game.h"
+#include "location.h"
+#include "Item.h"
+#include "NPC.h"
 // This function creates the world, including locations, NPCs, and items.
 void Game::createWorld() {
     // Define some example items

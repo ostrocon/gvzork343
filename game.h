@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 #include <string>
-#include "Location.h"
+#include "location.h"
 #include "Item.h"
 #include "NPC.h"
 

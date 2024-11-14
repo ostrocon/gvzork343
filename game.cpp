@@ -29,25 +29,37 @@ std::map<std::string, void(Game::*)(std::vector<std::string>)> Game::setupComman
 }
 
 void Game::createWorld() {
-    // Create Locations, Items, and NPCs with descriptions
-
-    Location kirkhoff("Kirkhoff Upstairs", 
-                      "The student union. There are restaurants, a store, "
-                      "and places to congregate.");
-    // Add items and NPCs to kirkhoff...
-
+    // Create Locations
+    Location kirkhoff("Kirkhoff Upstairs", "The student union. There are restaurants, a store, and places to congregate.");
     Location woods("Woods", "A dense forest filled with shadows.");
-    // Add items and NPCs to woods...
+    
+    // Create Items
+    Item book("Old Book", "A dusty old book with faded letters.",10, 15);
+    Item lantern("Lantern", "An oil lantern with a steady flame.",15, 10);
+    
+    // Create NPCs
+    NPC librarian("Librarian", "An elderly person with glasses who seems very knowledgeable.");
+    NPC hunter("Hunter", "A rugged individual with a bow and quiver of arrows.");
+    
+    // Add messages to the NPC
+    librarian.addMessage("Hello, how can I help you?");
+    librarian.addMessage("Books are a treasure trove of knowledge.");
+    librarian.addMessage("Please return borrowed books on time!");
 
-    // Add more locations following this format
+    // Add Items and NPCs to Locations
+    kirkhoff.addItem(book);
+    kirkhoff.addNPC(librarian);
+
+    woods.addItem(lantern);
+    woods.addNPC(hunter);
+
+    // Add Locations to the World
     world.push_back(kirkhoff);
     world.push_back(woods);
-    // Add additional locations as needed...
 
-    // Set up neighbors for locations
+    // Set Neighbors
     kirkhoff.setNeighbor("north", &woods);
     woods.setNeighbor("south", &kirkhoff);
-    // Set up additional neighbors for other locations as needed
 }
 
 Location* Game::randomLocation() {
@@ -100,14 +112,68 @@ void Game::showHelp(std::vector<std::string> args) {
 }
 
 void Game::talk(std::vector<std::string> args) {
-    // Implement logic to interact with NPCs in the current location
-    std::cout << "You try to talk, but there's no one here." << std::endl;
+    // Get the NPCs from the current location
+    const auto& npcs = currentLocation->getNPCs();
+    if (npcs.empty()) {
+        std::cout << "There's no one here to talk to." << std::endl;
+        return;
+    }
+
+    if (args.empty()) {
+        // If no name is provided, list NPCs present in the location
+        std::cout << "Specify who you'd like to talk to. NPCs here: ";
+        for (const auto& npc : npcs) {
+            std::cout << npc.getName() << " ";
+        }
+        std::cout << std::endl;
+        return;
+    }
+
+    // Attempt to find the NPC by name
+    std::string npcName = args[0];
+    auto it = std::find_if(npcs.begin(), npcs.end(), [&npcName](const NPC& npc) {
+        return npc.getName() == npcName;
+    });
+
+    if (it != npcs.end()) {
+        // Talk to the found NPC
+        std::cout << it->getName() << ": " << it->getMessage() << std::endl;
+    } else {
+        // NPC not found in the location
+        std::cout << "There's no one named " << npcName << " here." << std::endl;
+    }
 }
 
 void Game::meet(std::vector<std::string> args) {
-    // Check if NPC is present, if so, print description
-    std::cout << "You meet someone interesting." << std::endl;
+    // Get the NPCs from the current location
+    const auto& npcs = currentLocation->getNPCs();
+    if (npcs.empty()) {
+        std::cout << "There's no one here to meet." << std::endl;
+        return;
+    }
+
+    if (args.empty()) {
+        // If no name is provided, meet the first NPC in the location
+        const NPC& firstNPC = npcs.front();
+        std::cout << "You meet " << firstNPC.getName() << ". " << firstNPC.getDescription() << std::endl;
+        return;
+    }
+
+    // Attempt to find the NPC by name
+    std::string npcName = args[0];
+    auto it = std::find_if(npcs.begin(), npcs.end(), [&npcName](const NPC& npc) {
+        return npc.getName() == npcName;
+    });
+
+    if (it != npcs.end()) {
+        // NPC found, display their description
+        std::cout << "You meet " << it->getName() << ". " << it->getDescription() << std::endl;
+    } else {
+        // NPC not found in the location
+        std::cout << "There's no one named " << npcName << " here." << std::endl;
+    }
 }
+
 
 void Game::take(std::vector<std::string> args) {
     // Implement logic to pick up items if present in the location
@@ -130,8 +196,30 @@ void Game::showItems(std::vector<std::string> args) {
 }
 
 void Game::look(std::vector<std::string> args) {
-    // Print details about current location, items, NPCs, and exits
-    std::cout << "Looking around, you see..." << std::endl;
+    if (currentLocation) {
+        std::cout << "You are at: " << currentLocation->getName() << "\n";
+        std::cout << currentLocation->getDescription() << "\n\n";
+
+        // Display Items
+        std::cout << "Items here:\n";
+        for (const auto& item : currentLocation->getItems()) {
+            std::cout << "- " << item.getName() << ": " << item.getDescription() << "\n";
+        }
+
+        // Display NPCs
+        std::cout << "\nCharacters here:\n";
+        for (const auto& npc : currentLocation->getNPCs()) {
+            std::cout << "- " << npc.getName() << ": " << npc.getDescription() << "\n";
+        }
+
+        // Display Neighbors
+        std::cout << "\nExits:\n";
+        for (const auto& neighbor : currentLocation->getNeighbors()) {
+            std::cout << "- " << neighbor.first << "\n";
+        }
+    } else {
+        std::cout << "You are in an unknown location.\n";
+    }
 }
 
 void Game::quit(std::vector<std::string> args) {
@@ -146,6 +234,18 @@ void Game::teleport(std::vector<std::string> args) {
 }
 
 void Game::magic(std::vector<std::string> args) {
-    std::cout << "You cast a magical spell!" << std::endl;
-}
+    if (elfCaloriesNeeded > 0) {
+        elfCaloriesNeeded -= 500;
+        if (elfCaloriesNeeded < 0) elfCaloriesNeeded = 0; // Ensure it doesn't go negative
 
+        std::cout << "You cast a magical spell! Elf's calorie need is reduced by 500." << std::endl;
+        std::cout << "Elf still needs " << elfCaloriesNeeded << " calories." << std::endl;
+
+        if (elfCaloriesNeeded == 0) {
+            std::cout << "Congratulations! The elf has enough calories!" << std::endl;
+            inProgress = false; // End the game as a win condition
+        }
+    } else {
+        std::cout << "The elf's calorie needs are already met. No magic needed!" << std::endl;
+    }
+}

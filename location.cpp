@@ -12,6 +12,10 @@ Location* Location::getNeighbor(const std::string& direction) const {
     return it != neighbors.end() ? it->second : nullptr;
 }
 
+void Location::setItems(const std::vector<Item>& newItems) {
+    items = newItems;  // Update the items with the modified list
+}
+
 void Location::addItem(const Item& item) {
     items.push_back(item);
 }
@@ -20,7 +24,7 @@ void Location::addNPC(const NPC& npc) {
     npcs.push_back(npc);
 }
 
-std::vector<Item> Location::getItems() const {
+const std::vector<Item> Location::getItems() const {
     return items;
 }
 

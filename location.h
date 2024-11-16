@@ -17,9 +17,11 @@ public:
     void addItem(const Item& item);
     void addNPC(const NPC& npc);
 
-    std::vector<Item> getItems() const;
+    const std::vector<Item> getItems() const;
     std::vector<NPC> getNPCs() const;
     
+    void setItems(const std::vector<Item>& newItems);  // Function to update items
+
     // In Location.h, add the following getter functions:
 
     // Getter for the name of the Location

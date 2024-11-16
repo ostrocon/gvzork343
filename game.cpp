@@ -174,10 +174,40 @@ void Game::meet(std::vector<std::string> args) {
     }
 }
 
+// Assuming Game class declaration includes a vector for player inventory:
+std::vector<Item> playerInventory;
 
-void Game::take(std::vector<std::string> args) {
-    // Implement logic to pick up items if present in the location
-    std::cout << "You picked up an item." << std::endl;
+// Updated take function
+void Game::take(std::vector<std::string> target) {
+    // Get a copy of the items from the current location
+    std::vector<Item> items = currentLocation->getItems();
+    
+    if (target.empty()) {
+        std::cout << "Specify what to take!" << std::endl;
+        return;
+    }
+
+    std::string itemName = target[0];
+    auto it = std::find_if(items.begin(), items.end(), [&itemName](const Item& item) {
+        return item.getName() == itemName;
+    });
+
+    if (it != items.end()) {
+        // Item found, remove it from the location and add it to the player's inventory
+        Item itemToTake = *it;
+        items.erase(it);  // Modify the local copy
+        
+        // Add the item to the player's inventory and update weight
+        playerInventory.push_back(itemToTake);
+        currentWeight += itemToTake.getWeight();  // Assuming playerInventory is available
+        
+        std::cout << "You took the " << itemName << "." << std::endl;
+    } else {
+        std::cout << "No such item here!" << std::endl;
+    }
+
+    // After modifying the copy, update the location's items
+    currentLocation->setItems(items);
 }
 
 void Game::give(std::vector<std::string> args) {

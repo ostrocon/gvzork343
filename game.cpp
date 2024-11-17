@@ -221,8 +221,20 @@ void Game::go(std::vector<std::string> args) {
 }
 
 void Game::showItems(std::vector<std::string> args) {
-    // Display items in player’s inventory and current weight
-    std::cout << "You are carrying items." << std::endl;
+    // Check if the player is carrying any items
+    if (playerInventory.empty()) {
+        std::cout << "You are not carrying any items." << std::endl;
+        return;
+    }
+
+    // Display all items in the player's inventory
+    std::cout << "Items you are carrying:" << std::endl;
+    for (const auto& item : playerInventory) {
+        std::cout << "- " << item.getName() << " (" << item.getWeight() << " lbs)" << std::endl;
+    }
+
+    // Show the current total weight of all items
+    std::cout << "Total weight carried: " << currentWeight << " lbs" << std::endl;
 }
 
 void Game::look(std::vector<std::string> args) {

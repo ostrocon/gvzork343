@@ -1,12 +1,12 @@
 #include "Game.h"
 
+// Yash Hazari, Connor Ostrowski, Lucian Whitaker
+
 int main() {
-    // Create the Game object which manages the game state
+    // Create the Game object
     Game game;
-
-    // Start the game loop
+    // Start the loop
     game.play();
-
     return 0;
 }
 

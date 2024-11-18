@@ -3,12 +3,11 @@
 
 #include <string>
 
+// Yash Hazari, Lucian Whitaker, Connor Ostrowski
+
 class Item {
 public:
-    // Constructor now includes weight and calories
     Item(std::string name, std::string description, int weight, int calories);
-
-    // Getters for name, description, weight, and calories
     std::string getName() const;
     std::string getDescription() const;
     int getWeight() const;
@@ -17,8 +16,8 @@ public:
 private:
     std::string name;
     std::string description;
-    int weight;    // Weight of the item
-    int calories;  // Calories associated with the item
+    int weight;
+    int calories;
 };
 
 #endif // ITEM_H

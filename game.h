@@ -1,12 +1,14 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <map>       // For std::map
-#include <vector>    // For std::vector
-#include <string>    // For std::string
+#include <map> 
+#include <vector> 
+#include <string>
 #include "Location.h"
 
-// Forward declarations for classes used but not defined here
+// Yash Hazari, Connor Ostrowski, Lucian Whitaker
+
+// Declarations for classes used but not defined here
 class Location;
 class Item;
 class NPC;
@@ -15,13 +17,9 @@ class Game {
 public:
     Game();
     void play();
-    
-    // Sets up the commands map
     std::map<std::string, void(Game::*)(std::vector<std::string>)> setupCommands();
-
     void createWorld();
     Location* randomLocation();
-
     void showHelp(std::vector<std::string> args);
     void talk(std::vector<std::string> args);
     void meet(std::vector<std::string> args);
@@ -31,7 +29,6 @@ public:
     void showItems(std::vector<std::string> args);
     void look(std::vector<std::string> args);
     void quit(std::vector<std::string> args);
-
     // Custom commands
     void teleport(std::vector<std::string> args);
     void magic(std::vector<std::string> args);

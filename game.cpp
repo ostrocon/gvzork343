@@ -7,12 +7,16 @@
 #include <vector>
 #include <string>
 
+// Yash Hazari, Connor Ostrowski, Lucian Whitaker
+
+// Set up game stats
 Game::Game() : currentWeight(0), elfCaloriesNeeded(500), inProgress(true) {
     commands = setupCommands();
     createWorld();
     currentLocation = randomLocation();
 }
 
+// Set up commands
 std::map<std::string, void(Game::*)(std::vector<std::string>)> Game::setupCommands() {
     std::map<std::string, void(Game::*)(std::vector<std::string>)> cmd;
     cmd["help"] = &Game::showHelp;
@@ -30,6 +34,7 @@ std::map<std::string, void(Game::*)(std::vector<std::string>)> Game::setupComman
     return cmd;
 }
 
+// Create map and world
 void Game::createWorld() {
     // Create Locations
     Location kirkhoff("Kirkhoff", "The student center where there are restaraunts and study centers.");
@@ -144,11 +149,13 @@ void Game::createWorld() {
 
 }
 
+// Pick random location
 Location* Game::randomLocation() {
     int idx = std::rand() % world.size();
     return &world[idx];
 }
 
+// Function for game loop to play
 void Game::play() {
     std::cout << "Welcome to the GV-themed Zork game!" << std::endl;
 
@@ -163,12 +170,9 @@ void Game::play() {
         while (iss >> token) {
             tokens.push_back(token);
         }
-
         if (tokens.empty()) continue;
-
         std::string command = tokens[0];
         tokens.erase(tokens.begin());
-
         auto it = commands.find(command);
         if (it != commands.end()) {
             (this->*it->second)(tokens);
@@ -176,7 +180,6 @@ void Game::play() {
             std::cout << "Unknown command." << std::endl;
         }
     }
-
     if (elfCaloriesNeeded <= 0) {
         std::cout << "Congratulations! You have fed the elf enough calories!" << std::endl;
     } else {
@@ -184,6 +187,7 @@ void Game::play() {
     }
 }
 
+// Function for help command
 void Game::showHelp(std::vector<std::string> args) {
     std::cout << "Commands available:" << std::endl;
     for (const auto& cmd : commands) {
@@ -194,16 +198,14 @@ void Game::showHelp(std::vector<std::string> args) {
     std::cout << "Current time: " << std::put_time(std::localtime(&now), "%H:%M:%S") << std::endl;
 }
 
+// Function to get message from NPC
 void Game::talk(std::vector<std::string> args) {
-    // Get the NPCs from the current location
     const auto& npcs = currentLocation->getNPCs();
     if (npcs.empty()) {
         std::cout << "There's no one here to talk to." << std::endl;
         return;
     }
-
     if (args.empty()) {
-        // If no name is provided, list NPCs present in the location
         std::cout << "Specify who you'd like to talk to. NPCs here: ";
         for (const auto& npc : npcs) {
             std::cout << npc.getName() << " ";
@@ -211,114 +213,86 @@ void Game::talk(std::vector<std::string> args) {
         std::cout << std::endl;
         return;
     }
-
-    // Attempt to find the NPC by name
     std::string npcName = args[0];
     auto it = std::find_if(npcs.begin(), npcs.end(), [&npcName](const NPC& npc) {
         return npc.getName() == npcName;
     });
-
     if (it != npcs.end()) {
-        // Talk to the found NPC
         std::cout << it->getName() << ": " << it->getMessage() << std::endl;
     } else {
-        // NPC not found in the location
         std::cout << "There's no one named " << npcName << " here." << std::endl;
     }
 }
 
+// Function to get NPC description
 void Game::meet(std::vector<std::string> args) {
-    // Get the NPCs from the current location
     const auto& npcs = currentLocation->getNPCs();
     if (npcs.empty()) {
         std::cout << "There's no one here to meet." << std::endl;
         return;
     }
-
     if (args.empty()) {
-        // If no name is provided, meet the first NPC in the location
         const NPC& firstNPC = npcs.front();
         std::cout << "You meet " << firstNPC.getName() << ". " << firstNPC.getDescription() << std::endl;
         return;
     }
-
-    // Attempt to find the NPC by name
     std::string npcName = args[0];
     auto it = std::find_if(npcs.begin(), npcs.end(), [&npcName](const NPC& npc) {
         return npc.getName() == npcName;
     });
-
     if (it != npcs.end()) {
-        // NPC found, display their description
         std::cout << "You meet " << it->getName() << ". " << it->getDescription() << std::endl;
     } else {
-        // NPC not found in the location
         std::cout << "There's no one named " << npcName << " here." << std::endl;
     }
 }
 
-// Assuming Game class declaration includes a vector for player inventory:
+// Vector for items player has
 std::vector<Item> playerInventory;
 
-// Updated take function
+// Function to take item from location
 void Game::take(std::vector<std::string> target) {
-    // Get a copy of the items from the current location
     std::vector<Item> items = currentLocation->getItems();
-    
     if (target.empty()) {
         std::cout << "Specify what to take!" << std::endl;
         return;
     }
-
     std::string itemName = target[0];
     auto it = std::find_if(items.begin(), items.end(), [&itemName](const Item& item) {
         return item.getName() == itemName;
     });
-
     if (it != items.end()) {
-        // Item found, remove it from the location and add it to the player's inventory
         Item itemToTake = *it;
-        items.erase(it);  // Modify the local copy
-        
-        // Add the item to the player's inventory and update weight
+        items.erase(it);
         playerInventory.push_back(itemToTake);
-        currentWeight += itemToTake.getWeight();  // Assuming playerInventory is available
-        
+        currentWeight += itemToTake.getWeight();
         std::cout << "You took the " << itemName << "." << std::endl;
     } else {
         std::cout << "No such item here!" << std::endl;
     }
-
-    // After modifying the copy, update the location's items
     currentLocation->setItems(items);
 }
 
+// Function to give item to location
 void Game::give(std::vector<std::string> target) {
     if (target.empty()) {
         std::cout << "You need to specify what item to give!" << std::endl;
         return;
     }
-
     std::string itemName = target[0];
-
     auto it = std::find_if(playerInventory.begin(), playerInventory.end(),
             [&itemName](const Item& item) {
             return item.getName() == itemName;
             });
-
     if (it == playerInventory.end()) {
         std::cout << "You don't have " << itemName << " in your inventory." << std::endl;
         return;
     }
-
     Item itemToGive = *it;
     playerInventory.erase(it);
-
     currentWeight -= itemToGive.getWeight();
     currentLocation->addItem(itemToGive);
-
     std::cout << "You gave " << itemName << " to the location." << std::endl;
-
     if (currentLocation->getName() == "Woods") {
         if (itemToGive.getCalories() > 0) {
             elfCaloriesNeeded -= itemToGive.getCalories();
@@ -333,23 +307,18 @@ void Game::give(std::vector<std::string> target) {
     }
 }
 
+// Function to move to new location in direction specified
 void Game::go(std::vector<std::string> target) {
-    // Set the current location's visited status to true
     currentLocation->setVisited(true);
-
-    // Check if the player's weight exceeds 30
     if (currentWeight > 30) {
         std::cout << "You are carrying too much weight to move!" << std::endl;
         return;
     }
-    
     if (target.empty()) {
         std::cout << "Specify a direction to move!" << std::endl;
         return;
     }
-
-    // Check if the provided directions exist in the current location's neighbor map
-    std::string direction = target[0]; // Assuming 'target' vector has at least one element with the direction
+    std::string direction = target[0];
     Location* nextLocation = currentLocation->getNeighbor(direction);
     if (nextLocation) {
         currentLocation = nextLocation;
@@ -359,41 +328,32 @@ void Game::go(std::vector<std::string> target) {
     }
 }
 
+// Function to show items in player's invenetory
 void Game::showItems(std::vector<std::string> args) {
-    // Check if the player is carrying any items
     if (playerInventory.empty()) {
         std::cout << "You are not carrying any items." << std::endl;
         return;
     }
-
-    // Display all items in the player's inventory
     std::cout << "Items you are carrying:" << std::endl;
     for (const auto& item : playerInventory) {
         std::cout << "- " << item.getName() << " (" << item.getWeight() << " lbs)" << std::endl;
     }
-
-    // Show the current total weight of all items
     std::cout << "Total weight carried: " << currentWeight << " lbs" << std::endl;
 }
 
+// Function to get info about current location
 void Game::look(std::vector<std::string> args) {
     if (currentLocation) {
         std::cout << "You are at: " << currentLocation->getName() << "\n";
         std::cout << currentLocation->getDescription() << "\n\n";
-
-        // Display Items
         std::cout << "Items here:\n";
         for (const auto& item : currentLocation->getItems()) {
             std::cout << "- " << item.getName() << ": " << item.getDescription() << "\n";
         }
-
-        // Display NPCs
         std::cout << "\nCharacters here:\n";
         for (const auto& npc : currentLocation->getNPCs()) {
             std::cout << "- " << npc.getName() << ": " << npc.getDescription() << "\n";
         }
-
-        // Display Neighbors
         std::cout << "\nExits:\n";
         for (const auto& neighbor : currentLocation->getNeighbors()) {
             std::cout << "- " << neighbor.first << "\n";
@@ -403,25 +363,25 @@ void Game::look(std::vector<std::string> args) {
     }
 }
 
+// Function to give up and terminate game
 void Game::quit(std::vector<std::string> args) {
     inProgress = false;
     std::cout << "Quitting the game. Goodbye!" << std::endl;
 }
 
 // Custom command functions
+// Function to teleport at anytime to some random location
 void Game::teleport(std::vector<std::string> args) {
     currentLocation = randomLocation();
     std::cout << "You teleported to a new location!" << std::endl;
 }
 
+// Function to reduce calories needed by 500 instantly
 void Game::magic(std::vector<std::string> args) {
     if (elfCaloriesNeeded > 0) {
         elfCaloriesNeeded -= 500;
-        if (elfCaloriesNeeded < 0) elfCaloriesNeeded = 0; // Ensure it doesn't go negative
-
         std::cout << "You cast a magical spell! Elf's calorie need is reduced by 500." << std::endl;
         std::cout << "Elf still needs " << elfCaloriesNeeded << " calories." << std::endl;
-
         if (elfCaloriesNeeded == 0) {
             std::cout << "Congratulations! The elf has enough calories!" << std::endl;
             inProgress = false; // End the game as a win condition

@@ -1,5 +1,7 @@
 #include "Location.h"
 
+// Yash Hazari, Connor Ostrowski, Lucian Whitaker
+
 Location::Location(std::string name, std::string description)
     : name(name), description(description) {}
 
@@ -17,7 +19,7 @@ Location* Location::getNeighbor(const std::string& direction) const {
 }
 
 void Location::setItems(const std::vector<Item>& newItems) {
-    items = newItems;  // Update the items with the modified list
+    items = newItems;
 }
 
 void Location::addItem(const Item& item) {

@@ -9,7 +9,11 @@ void Location::setNeighbor(const std::string& direction, Location* neighbor) {
 
 Location* Location::getNeighbor(const std::string& direction) const {
     auto it = neighbors.find(direction);
-    return it != neighbors.end() ? it->second : nullptr;
+    if (it != neighbors.end()) {
+        return it->second;
+    } else {
+        return nullptr;
+    }
 }
 
 void Location::setItems(const std::vector<Item>& newItems) {

@@ -39,11 +39,20 @@ public:
         return neighbors;
     }
 
+    void setVisited(bool state) {
+        visited = state;
+    }
+
+    bool isVisited() const {
+        return visited;
+    }
+
 private:
     std::string name;
     std::string description;
     std::map<std::string, Location*> neighbors;
     std::vector<Item> items;
     std::vector<NPC> npcs;
+    bool visited = false;
 };
 

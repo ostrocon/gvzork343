@@ -25,7 +25,7 @@ public:
 private:
     std::string name;
     std::string description;
-    mutable int messageNumber; // Tracks the current message index
+    mutable int messageNumber = 0; // Tracks the current message index
     std::vector<std::string> messages; // Stores the NPC's messages
 };
 

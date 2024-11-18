@@ -2,8 +2,10 @@
 #include <iostream>
 #include <sstream>
 #include <ctime>
-#include <iomanip>  // for time formatting
-#include <algorithm> // for find_if
+#include <iomanip> 
+#include <algorithm>
+#include <vector>
+#include <string>
 
 Game::Game() : currentWeight(0), elfCaloriesNeeded(500), inProgress(true) {
     commands = setupCommands();
@@ -19,7 +21,7 @@ std::map<std::string, void(Game::*)(std::vector<std::string>)> Game::setupComman
     cmd["take"] = &Game::take;
     cmd["give"] = &Game::give;
     cmd["go"] = &Game::go;
-    cmd["show items"] = &Game::showItems;
+    cmd["show"] = &Game::showItems;
     cmd["look"] = &Game::look;
     cmd["quit"] = &Game::quit;
     // Add two custom commands here
@@ -30,21 +32,54 @@ std::map<std::string, void(Game::*)(std::vector<std::string>)> Game::setupComman
 
 void Game::createWorld() {
     // Create Locations
-    Location kirkhoff("Kirkhoff Upstairs", "The student union. There are restaurants, a store, and places to congregate.");
-    Location woods("Woods", "A dense forest filled with shadows.");
+    Location kirkhoff("Kirkhoff", "The student center where there are restaraunts and study centers.");
+    Location woods("Woods", "A dense forest filled with shadows.  The elf lives here, so feed him edible food to win.");
+    Location padnos("Padnos", "A sciences hall where Chemistry classes are held.");
+    Location mackinac("Mackinac", "A lecture building where many gen ed and computer science classes are held.");
+    Location store("Laker Store", "A building that sells many very expensive GVSU merch and books for classes.");
+    Location meadows("Meadows", "A clubhouse where golf merch is sold and people can relax before/after playing golf.");
+    Location zumberge("Zumberge", "An administration building where Philly's office is.");
+    Location blue("Blue Connection", "A building with the best food on campus.");
     
     // Create Items
-    Item book("Old Book", "A dusty old book with faded letters.",10, 15);
-    Item lantern("Lantern", "An oil lantern with a steady flame.",15, 10);
+    Item book("Book", "A dusty old book with faded letters.",5, 0);
+    Item lantern("Lantern", "An oil lantern with a steady flame.",10, 0);
+    Item beaker("Beaker", "A chemical beaker for storing liquid chemicals.",1,0);
+    Item hoodie("Hoodie", "A sweatshirt with a hood that says GVSU.",2,0);
+    Item candy("Candy", "A king size twix candy bar.",1,150);
+    Item chips("Chips", "A party size bag of cool ranch doritos.",1,250);
+    Item club("Club", "A 9 iron golf club.",5,0);
+    Item lunch("Lunch", "A grilled cheese lunch meal.",2,1000);
+    Item chair("Chair", "An office chair with wheels.",35,0);
+    Item sandwhich("Sandwhich", "A sub from the blue connection with lettuce.",5,400);
     
     // Create NPCs
     NPC librarian("Librarian", "An elderly person with glasses who seems very knowledgeable.");
     NPC hunter("Hunter", "A rugged individual with a bow and quiver of arrows.");
+    NPC professor("Professor", "Professor Woodring, a computer science wizard.");
+    NPC attendant("Attendant", "A golf cart attendant.");
+    NPC philly("Philly", "Philomena Mantella the President of GVSU.");
     
     // Add messages to the NPC
     librarian.addMessage("Hello, how can I help you?");
     librarian.addMessage("Books are a treasure trove of knowledge.");
     librarian.addMessage("Please return borrowed books on time!");
+
+    hunter.addMessage("Feed the elf!");
+    hunter.addMessage("Use the give command to feed the elf.");
+    hunter.addMessage("If you don't bring me more food, I will hunt you instead.");
+
+    professor.addMessage("Get your 343 project started early!");
+    professor.addMessage("I am about to have a PhD.");
+    professor.addMessage("Switzerland!!!");
+
+    attendant.addMessage("Do you need your clubs cleaned?");
+    attendant.addMessage("It is a great day for golf.");
+    attendant.addMessage("Golf is better than fishing.");
+
+    philly.addMessage("Anchor up!");
+    philly.addMessage("See you at the game Saturday.");
+    philly.addMessage("GVSU is the best school EVER!!");
 
     // Add Items and NPCs to Locations
     kirkhoff.addItem(book);
@@ -53,13 +88,60 @@ void Game::createWorld() {
     woods.addItem(lantern);
     woods.addNPC(hunter);
 
+    padnos.addItem(beaker);
+    padnos.addNPC(philly);
+
+    mackinac.addItem(candy);
+    mackinac.addNPC(professor);
+
+    store.addItem(hoodie);
+    store.addItem(chips);
+    
+    meadows.addItem(club);
+    meadows.addNPC(attendant);
+
+    zumberge.addItem(lunch);
+    zumberge.addItem(chair);
+
+    blue.addItem(sandwhich);
+
     // Add Locations to the World
     world.push_back(kirkhoff);
     world.push_back(woods);
+    world.push_back(padnos);
+    world.push_back(mackinac);
+    world.push_back(store);
+    world.push_back(meadows);
+    world.push_back(zumberge);
+    world.push_back(blue);
 
     // Set Neighbors
-    kirkhoff.setNeighbor("north", &woods);
-    woods.setNeighbor("south", &kirkhoff);
+    kirkhoff.setNeighbor("north", &padnos);
+    kirkhoff.setNeighbor("west", &meadows);
+    kirkhoff.setNeighbor("south", &blue);
+    kirkhoff.setNeighbor("east", &zumberge);
+
+    padnos.setNeighbor("north", &woods);
+    padnos.setNeighbor("south", &kirkhoff);
+    padnos.setNeighbor("west", &store);
+    padnos.setNeighbor("east", &mackinac);
+
+    woods.setNeighbor("south", &padnos);
+
+    mackinac.setNeighbor("west", &padnos);
+    mackinac.setNeighbor("south", &zumberge);
+    
+    store.setNeighbor("east", &padnos);
+    store.setNeighbor("south", &meadows);
+
+    meadows.setNeighbor("north", &store);
+    meadows.setNeighbor("east", &kirkhoff);
+    
+    zumberge.setNeighbor("north", &mackinac);
+    zumberge.setNeighbor("west", &kirkhoff);
+    
+    blue.setNeighbor("north", &kirkhoff);
+
 }
 
 Location* Game::randomLocation() {
@@ -107,6 +189,7 @@ void Game::showHelp(std::vector<std::string> args) {
     for (const auto& cmd : commands) {
         std::cout << "- " << cmd.first << std::endl;
     }
+    std::cout << "- magic" << std::endl;
     std::time_t now = std::time(nullptr);
     std::cout << "Current time: " << std::put_time(std::localtime(&now), "%H:%M:%S") << std::endl;
 }
@@ -210,14 +293,70 @@ void Game::take(std::vector<std::string> target) {
     currentLocation->setItems(items);
 }
 
-void Game::give(std::vector<std::string> args) {
-    // Implement logic for giving items to NPCs or leaving them
-    std::cout << "You give an item." << std::endl;
+void Game::give(std::vector<std::string> target) {
+    if (target.empty()) {
+        std::cout << "You need to specify what item to give!" << std::endl;
+        return;
+    }
+
+    std::string itemName = target[0];
+
+    auto it = std::find_if(playerInventory.begin(), playerInventory.end(),
+            [&itemName](const Item& item) {
+            return item.getName() == itemName;
+            });
+
+    if (it == playerInventory.end()) {
+        std::cout << "You don't have " << itemName << " in your inventory." << std::endl;
+        return;
+    }
+
+    Item itemToGive = *it;
+    playerInventory.erase(it);
+
+    currentWeight -= itemToGive.getWeight();
+    currentLocation->addItem(itemToGive);
+
+    std::cout << "You gave " << itemName << " to the location." << std::endl;
+
+    if (currentLocation->getName() == "Woods") {
+        if (itemToGive.getCalories() > 0) {
+            elfCaloriesNeeded -= itemToGive.getCalories();
+            std::cout << "The elf consumes " << itemToGive.getCalories() << " calories. Remaining: " << elfCaloriesNeeded << " calories." << std::endl;
+            if (elfCaloriesNeeded <= 0) {
+                std::cout << "You win!  The elf is satisfies and the task is complete." << std::endl;
+            }
+        } else {
+            currentLocation = randomLocation();
+            std::cout << "The elf rejects your item as it is not edible and teleports you to a random location" << std::endl;
+        }
+    }
 }
 
-void Game::go(std::vector<std::string> args) {
-    // Implement movement logic based on available neighbors and current weight
-    std::cout << "You move to a new location." << std::endl;
+void Game::go(std::vector<std::string> target) {
+    // Set the current location's visited status to true
+    currentLocation->setVisited(true);
+
+    // Check if the player's weight exceeds 30
+    if (currentWeight > 30) {
+        std::cout << "You are carrying too much weight to move!" << std::endl;
+        return;
+    }
+    
+    if (target.empty()) {
+        std::cout << "Specify a direction to move!" << std::endl;
+        return;
+    }
+
+    // Check if the provided directions exist in the current location's neighbor map
+    std::string direction = target[0]; // Assuming 'target' vector has at least one element with the direction
+    Location* nextLocation = currentLocation->getNeighbor(direction);
+    if (nextLocation) {
+        currentLocation = nextLocation;
+        std::cout << "You move " << direction << " to " << currentLocation->getName() << "." << std::endl;
+    } else {
+        std::cout << "You can't go that way!" << std::endl;
+    }
 }
 
 void Game::showItems(std::vector<std::string> args) {
